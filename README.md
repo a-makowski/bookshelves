@@ -44,3 +44,7 @@ The BookShelves API automatically populates the database with sample data during
   to:
 
       spring.sql.init.mode=never
+
+## Try BookShelves out with Postman:
+
+There is a [postman_collection.json](https://github.com/a-makowski/bookshelves/blob/main/postman_collection_local_deployment.JSON) file in a root folder with all necessary requests to test BookShelves API.
