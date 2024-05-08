@@ -33,4 +33,4 @@ jobs:
         docker-compose up -d --build
         docker ps
     - name: Build with Maven
-      run: mvn --file pom.xml clean install
+      run: mvn --file pom.xml clean install -Dspring.profiles.active=dev-mysql
