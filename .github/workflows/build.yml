@@ -21,16 +21,28 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Application checkout
+      uses: actions/checkout@v4
+
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'corretto'
         cache: maven
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Install Docker Compose
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y docker-compose
+
     - name: Create database with docker-compose
       run: |
         docker-compose up -d --build
         docker ps
+
     - name: Build with Maven
       run: mvn --file pom.xml clean install -Dspring.profiles.active=dev-mysql
