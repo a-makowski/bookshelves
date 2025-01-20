@@ -36,12 +36,13 @@ public class RatingService {
 
     public Rating createRating(Rating rating, Long bookId) {
         User user = userService.getLoggedUser();
-        if (canUserRateIt(user.getId(), bookId)) {
+        Book book = bookService.getBook(bookId);
+        if (canUserRateIt(user, book)) {
             if (isItProperRating(rating)) {
                 if (rating.getScore() != 0) changeRating(bookService.getBook(bookId), 0, rating.getScore());
                 rating.setDate(LocalDate.now());
                 rating.setUser(user);
-                rating.setBook(bookService.getBook(bookId));
+                rating.setBook(book);
                 return ratingRepository.save(rating);    
             } else throw new InvalidRequestException();
         } else throw new InvalidRequestException();   
@@ -96,7 +97,7 @@ public class RatingService {
         return ((rating.getScore() != 0) || (!rating.getReview().isBlank())) && (rating.getScore() <= 10);
     }
 
-    public boolean canUserRateIt(Long userId, Long bookId) {
-        return !ratingRepository.existByUserIdAndBookId(userId, bookId);
+    public boolean canUserRateIt(User user, Book book) {
+        return !ratingRepository.existsByUserAndBook(user, book);
     }
 }
