@@ -1,4 +1,4 @@
-INSERT INTO books (title, author, publisher, genre, pages, publication_year, rating, scores_number, scores_sume) VALUES
+INSERT INTO books (title, author, publisher, genre, pages, publication_year, rating, scores_number, scores_sum) VALUES
 ('The Last Devil to Die', 'Richard Osman', 'Viking Press', 'crime', 422, 2023, 7.3, 3, 22),
 ('Rich People Problems', 'Kevin Kwan', 'Doubleday', 'fiction', 398, 2017, 0.0, 0, 0),
 ('Little Fires Everywhere', 'Celeste Ng', 'Penguin Press', 'fiction', 338, 2017, 0.0, 0, 0),
