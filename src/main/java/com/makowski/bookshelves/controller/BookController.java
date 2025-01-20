@@ -143,7 +143,7 @@ public class BookController {
     }) 
     @GetMapping("/{id}/ratings")
     public ResponseEntity<List<Rating>> getBooksRatings(@PathVariable Long id) {
-        return new ResponseEntity<>(bookService.getBooksRatings(id), HttpStatus.OK);
+        return new ResponseEntity<>(bookService.getBookRatings(id), HttpStatus.OK);
     }
 
     @Operation(summary = "Get top10 from genre", description = "Returns a list of 10 best rated books in a selected genre")

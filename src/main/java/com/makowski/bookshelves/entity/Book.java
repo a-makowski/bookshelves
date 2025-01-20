@@ -67,8 +67,8 @@ public class Book {
     private int scoresNumber;      
 
     @JsonIgnore
-    @Column(name = "scores_sume", nullable = false)
-    private int scoresSume;   
+    @Column(name = "scores_sum", nullable = false)
+    private int scoresSum;
     
     @JsonIgnore
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL)

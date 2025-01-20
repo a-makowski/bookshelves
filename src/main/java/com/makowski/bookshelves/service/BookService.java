@@ -26,14 +26,13 @@ public class BookService {
     }
 
     public Boolean existsById(Long id) {
-        if (bookRepository.existsById(id)) return true;
-            else return false;
+        return bookRepository.existsById(id);
     }
 
-    public Book addBook(Book book) {          
+    public Book addBook(Book book) {
         book.setRating(0);             
         book.setScoresNumber(0);
-        book.setScoresSume(0);
+        book.setScoresSum(0);
         return saveBook(book); 
     } 
 
@@ -41,12 +40,12 @@ public class BookService {
         return bookRepository.save(book);
     }
 
-    public void deleteBook(Long id) {           
+    public void deleteBook(Long id) {
         if (existsById(id)) bookRepository.deleteById(id);
             else throw new EntityNotFoundException(id, Book.class);
     }
 
-    public Book updateBook(Long id, Book editedBook) {    
+    public Book updateBook(Long id, Book editedBook) {
         Book book = getBook(id);
         book.setTitle(editedBook.getTitle());
         book.setAuthor(editedBook.getAuthor());
@@ -62,7 +61,7 @@ public class BookService {
     }
 
     public List<BookDto> findBooks(String phrase) {
-        if (phrase.isBlank() || phrase.isEmpty()) throw new InvalidRequestException();
+        if (phrase.isBlank()) throw new InvalidRequestException();
         List<BookDto> books = new ArrayList<>();
         for (Book book : bookRepository.findAll()) {
             String name = book.getTitle() + " " + book.getAuthor();
@@ -74,8 +73,8 @@ public class BookService {
             else return books;
     }    
     
-    public List<BookDto> getAuthorsBooks(String author) {                      
-        if (author.isBlank() || author.isEmpty()) throw new InvalidRequestException();
+    public List<BookDto> getAuthorsBooks(String author) {
+        if (author.isBlank()) throw new InvalidRequestException();
         List<BookDto> books = new ArrayList<>();
         for (Book book : bookRepository.findByAuthorOrderByYearDesc(author)) 
             books.add(getBookDto(book));
@@ -83,7 +82,7 @@ public class BookService {
             else return books;
     }
 
-    public List<Rating> getBooksRatings(Long id) {
+    public List<Rating> getBookRatings(Long id) {
         List<Rating> ratings = getBook(id).getRatings();
         if (ratings.isEmpty()) throw new EntityNotFoundException();
         for (Rating rating : ratings) {
@@ -92,8 +91,8 @@ public class BookService {
         return ratings;        
     }
 
-    public List<BookDto> top10FromGenre(String genre) {      
-        if (genre.isBlank() || genre.isEmpty()) throw new InvalidRequestException();
+    public List<BookDto> top10FromGenre(String genre) {
+        if (genre.isBlank()) throw new InvalidRequestException();
         List<BookDto> books = new ArrayList<>();
         for (Book book : bookRepository.findTop10ByGenreOrderByRatingDesc(genre)) {
             books.add(getBookDto(book));
