@@ -50,5 +50,4 @@ public class Shelf {
         inverseJoinColumns = @JoinColumn(name = "book_id", referencedColumnName = "id")
         )
     private List<Book> books;
-
 } 
