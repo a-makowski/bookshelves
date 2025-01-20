@@ -31,11 +31,9 @@ public class UserService {
     private UserRepository userRepository;
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public User createUser(User user) {  
-        for (User existingUser : userRepository.findAll()) {
-            if (existingUser.getEmail().equalsIgnoreCase(user.getEmail())) throw new ForbiddenNameException(user.getEmail());
-            if (existingUser.getUsername().equalsIgnoreCase(user.getUsername())) throw new ForbiddenNameException();
-        }
+    public User createUser(User user) {
+        if(userRepository.existsByUsernameIgnoreCase(user.getUsername())) throw new ForbiddenNameException();
+        if(userRepository.existsByEmailIgnoreCase(user.getEmail())) throw new ForbiddenNameException(user.getEmail());
         String encode = bCryptPasswordEncoder.encode(user.getPassword());
         user.setPassword(encode);      
         saveUser(user);
@@ -81,13 +79,13 @@ public class UserService {
 
     public void deleteUser(Long id) {      
         if (userRepository.existsById(id)) {
-            if (getLoggedUser().getId() == id) {
+            if (getLoggedUser().getId().equals(id)) {
                 userRepository.deleteById(id);
             } else throw new AccessDeniedException(); 
         } else throw new EntityNotFoundException(id, User.class);
     }
 
-    public User changePrivacyStatus() {        
+    public User changePrivacyStatus() {
         User user = getLoggedUser();
         user.setPrivateProfile(!user.getPrivateProfile());
         return saveUser(user);
@@ -100,7 +98,7 @@ public class UserService {
         return user.getShelves();
     }
 
-    public List<Rating> getUsersRatings(Long id) {           
+    public List<Rating> getUsersRatings(Long id) {
         return getUser(id).getRatings();
     }
      
@@ -116,10 +114,18 @@ public class UserService {
         User user = getLoggedUser();
         user.setNowReading(null);          
         return saveUser(user);
-    }                                                  
+    }
+
+    public User setAsNowReading(Long bookId) {
+        if (bookService.existsById(bookId)) {
+            User user = getLoggedUser();
+            user.setNowReading(bookId);
+            return saveUser(user);
+        } else throw new EntityNotFoundException ();
+    }
 
     public List<UserDto> findUser(String phrase) {   
-        if (phrase.isBlank() || phrase.isEmpty()) throw new InvalidRequestException();                  
+        if (phrase.isBlank()) throw new InvalidRequestException();
         List<UserDto> users = new ArrayList<>();    
         for (User user : userRepository.findAll()) {
             if (user.getUsername().toUpperCase().contains(phrase.toUpperCase())) {
@@ -128,13 +134,5 @@ public class UserService {
         }
         if (users.isEmpty()) throw new EntityNotFoundException();
             else return users;
-    }
-
-    public User setAsNowReading(Long bookId) {    
-        if (bookService.existsById(bookId)) {
-            User user = getLoggedUser();
-            user.setNowReading(bookId);
-            return saveUser(user);
-        } else throw new EntityNotFoundException ();
     }
 }
