@@ -21,7 +21,6 @@ public class RatingService {
     private UserService userService;
     private BookService bookService;
     private RatingRepository ratingRepository;
-    
 
     public Rating getRating(Long id) {
         return ratingRepository.findById(id)
@@ -35,7 +34,7 @@ public class RatingService {
         return rating;
     }
 
-    public Rating createRating(Rating rating, Long bookId) {    
+    public Rating createRating(Rating rating, Long bookId) {
         User user = userService.getLoggedUser();
         if (canUserRateIt(user.getId(), bookId)) {
             if (isItProperRating(rating)) {
@@ -48,7 +47,7 @@ public class RatingService {
         } else throw new InvalidRequestException();   
     }
 
-    public Rating updateRating(Long ratingId, Rating newRating) {     
+    public Rating updateRating(Long ratingId, Rating newRating) {
         Rating rating = getRating(ratingId);
         if (isItProperUser(ratingId)) {
             if (isItProperRating(newRating)) { 
@@ -63,7 +62,7 @@ public class RatingService {
         } else throw new AccessDeniedException();   
     }   
 
-    public void deleteRating(Long ratingId) {         
+    public void deleteRating(Long ratingId) {
         if (ratingRepository.existsById(ratingId)) {
             if (isItProperUser(ratingId)) {
                 Rating rating = getRating(ratingId);
@@ -73,36 +72,31 @@ public class RatingService {
         } else throw new EntityNotFoundException(ratingId, Rating.class);
     }
 
-    public void changeRating(Book book, int oldScore, int newScore) {  
+    public void changeRating(Book book, int oldScore, int newScore) {
         if (oldScore == 0) {
             book.setScoresNumber(book.getScoresNumber() + 1);
-            book.setScoresSume(book.getScoresSume() + newScore);
-            } else if (newScore == 0) {
-                book.setScoresNumber(book.getScoresNumber() - 1);
-                book.setScoresSume(book.getScoresSume() - oldScore);
-                } else {
-                    book.setScoresSume(book.getScoresSume() + (newScore - oldScore)); 
-                    }
+            book.setScoresSum(book.getScoresSum() + newScore);
+        } else if (newScore == 0) {
+            book.setScoresNumber(book.getScoresNumber() - 1);
+            book.setScoresSum(book.getScoresSum() - oldScore);
+        } else {
+            book.setScoresSum(book.getScoresSum() + (newScore - oldScore));
+        }
         if (book.getScoresNumber() == 0) book.setRating(0);      
-            else book.setRating((float)Math.round(((float)book.getScoresSume() / book.getScoresNumber())* 10) / 10); 
+            else book.setRating((float)Math.round(((float)book.getScoresSum() / book.getScoresNumber())* 10) / 10);
         bookService.saveBook(book);
     }
 
-    public boolean isItProperUser(Long ratingId) {            
-        if (getRating(ratingId).getUser() == userService.getLoggedUser()) return true;
-            else return false;
+    public boolean isItProperUser(Long ratingId) {
+        return getRating(ratingId).getUser() == userService.getLoggedUser();
     }
 
     public boolean isItProperRating(Rating rating) {
         if (rating.getReview() == null) rating.setReview("");
-        if (((rating.getScore() != 0) || (!rating.getReview().isBlank() && !rating.getReview().isEmpty())) && (rating.getScore() <= 10)) return true;
-            else return false;
+        return ((rating.getScore() != 0) || (!rating.getReview().isBlank())) && (rating.getScore() <= 10);
     }
 
     public boolean canUserRateIt(Long userId, Long bookId) {
-        for (Rating rating : userService.getUsersRatings(userId)) {
-            if (rating.getBook().getId() == bookId) return false;
-        }
-        return true;
+        return !ratingRepository.existByUserIdAndBookId(userId, bookId);
     }
 }
