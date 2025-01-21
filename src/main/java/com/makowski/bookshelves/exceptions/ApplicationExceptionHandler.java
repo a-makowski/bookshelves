@@ -1,7 +1,7 @@
-package com.makowski.bookshelves;
+package com.makowski.bookshelves.exceptions;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.dao.DataIntegrityViolationException;
@@ -15,44 +15,36 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import com.makowski.bookshelves.exceptions.AccessDeniedException;
-import com.makowski.bookshelves.exceptions.EntityNotFoundException;
-import com.makowski.bookshelves.exceptions.ErrorResponse;
-import com.makowski.bookshelves.exceptions.ForbiddenNameException;
-import com.makowski.bookshelves.exceptions.InvalidRequestException;
-import com.makowski.bookshelves.exceptions.PasswordNotEqualsException;
-import com.makowski.bookshelves.exceptions.PermanentShelfException;
-
 @ControllerAdvice
 public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler {
     
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Object> handleResourcesNotFoundException(RuntimeException ex) {
-        ErrorResponse error = new ErrorResponse(Arrays.asList(ex.getMessage()));
+        ErrorResponse error = new ErrorResponse(Collections.singletonList(ex.getMessage()));
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler({ForbiddenNameException.class, PermanentShelfException.class, PasswordNotEqualsException.class, InvalidRequestException.class})
     public ResponseEntity<Object> handleInvalidRequestException(RuntimeException ex) {
-        ErrorResponse error = new ErrorResponse(Arrays.asList(ex.getMessage()));
+        ErrorResponse error = new ErrorResponse(Collections.singletonList(ex.getMessage()));
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Object> handleAccessDeniedException(RuntimeException ex) {
-        ErrorResponse error = new ErrorResponse(Arrays.asList(ex.getMessage()));
+        ErrorResponse error = new ErrorResponse(Collections.singletonList(ex.getMessage()));
         return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(EmptyResultDataAccessException.class)
     public ResponseEntity<Object> handleDataAccessException(EmptyResultDataAccessException ex) {
-        ErrorResponse error = new ErrorResponse(Arrays.asList("Cannot delete non-existing resource"));  
+        ErrorResponse error = new ErrorResponse(List.of("Cannot delete non-existing resource"));
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Object> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
-        ErrorResponse error = new ErrorResponse(Arrays.asList("Data Integrity Violation: cannot process this request."));  
+        ErrorResponse error = new ErrorResponse(List.of("Data Integrity Violation: cannot process this request."));
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
