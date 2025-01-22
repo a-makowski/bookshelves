@@ -36,17 +36,17 @@ public class TestDataFactory {
 
     public static List<Book> createMoreTestBooks() {
         List<Book> books = new ArrayList<>();
-        books.add(createNewBook(2L, "title2", "author2", "genre2", 1990, 2.3F, 4));
-        books.add(createNewBook(3L, "title3", "author2", "genre2", 2015, 7.6F, 15));
-        books.add(createNewBook(4L, "title4", "author2", "genre2", 1989, 6.3F, 28));
-        books.add(createNewBook(5L, "title5", "author2", "genre2", 2001, 5.4F, 3));
-        books.add(createNewBook(6L, "title6", "author3", "genre2", 2024, 8.1F, 67));
-        books.add(createNewBook(7L, "title7", "author4", "genre2", 2024, 9.0F, 17));
-        books.add(createNewBook(8L, "title8", "author5", "genre2", 2024, 5.3F, 4));
+        books.add(createNewBook(2L, "title2", "author2", "genre2", 1990, 9.3F, 4));
+        books.add(createNewBook(3L, "title3", "author2", "genre2", 2015, 8.6F, 15));
+        books.add(createNewBook(4L, "title4", "author2", "genre2", 1989, 8.3F, 28));
+        books.add(createNewBook(5L, "title5", "author2", "genre2", 2001, 7.4F, 3));
+        books.add(createNewBook(6L, "title6", "author3", "genre2", 2024, 7.1F, 67));
+        books.add(createNewBook(7L, "title7", "author4", "genre2", 2024, 7.0F, 17));
+        books.add(createNewBook(8L, "title8", "author5", "genre2", 2024, 6.9F, 4));
         books.add(createNewBook(9L, "title9", "author6", "genre2", 2024, 6.7F, 45));
-        books.add(createNewBook(10L, "title10", "author7", "genre2", 2024, 7.8F, 24));
+        books.add(createNewBook(10L, "title10", "author7", "genre2", 2024, 6.6F, 24));
         books.add(createNewBook(11L, "title11", "author8", "genre2", 2024, 6.2F, 5));
-        books.add(createNewBook(12L, "title12", "author9", "genre2", 2024, 7.3F, 70));
+        books.add(createNewBook(12L, "title12", "author9", "genre2", 2024, 5.3F, 70));
         return books;
     }
 
