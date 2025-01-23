@@ -217,7 +217,6 @@ class BookServiceTest {
     @Test
     void getBookRatings_ThrowsException_WhenRatingsDoNotExist() {
         Book book = TestDataFactory.createTestBook();
-        book.setRatings(new ArrayList<>());
 
         when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
 
