@@ -80,15 +80,13 @@ public class ShelfService {
     }    
 
     public Shelf renameShelf(Long shelfId, String newName) {
+        if (newName.isBlank()) throw new InvalidRequestException();
+        if (!isItProperUser(shelfId)) throw new AccessDeniedException();
         Shelf shelf = getShelf(shelfId);
-        if (isItProperUser(shelfId)) {
-            if (!shelf.getPermanent()) {
-                if (isItProperName(newName)) {
-                    shelf.setName(newName);
-                    return saveShelf(shelf);
-                } else throw new ForbiddenNameException();   
-            } else throw new PermanentShelfException("rename"); 
-        } else throw new AccessDeniedException();   
+        if (shelf.getPermanent()) throw new PermanentShelfException("rename");
+        if (!isItProperName(newName)) throw new ForbiddenNameException();
+        shelf.setName(newName);
+        return saveShelf(shelf);
     }
 
     public Shelf deleteBookFromShelf(Long bookId, Long shelfId) {
