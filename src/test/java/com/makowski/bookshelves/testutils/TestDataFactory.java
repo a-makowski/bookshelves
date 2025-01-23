@@ -22,19 +22,21 @@ public class TestDataFactory {
         return createNewUser(2L, "username2");
     }
 
+    public static Shelf createTestShelf() {
+        return createNewShelf(3L, "Test Shelf", false);
+    }
+
+    public static List<Shelf> createTestDefaultLibrary() {
+        List<Shelf> library = new ArrayList<>();
+        library.add(createNewShelf(1L, "Want read", true));
+        library.add(createNewShelf(2L, "Have read", true));
+        return library;
+    }
+
     public static Rating createTestRating() {
         Rating rating = new Rating();
         rating.setId(1L);
         return rating;
-    }
-
-    public static Shelf createTestShelf() {
-        Shelf shelf = new Shelf();
-        shelf.setId(1L);
-        shelf.setName("Test Shelf");
-        shelf.setPermanent(false);
-        shelf.setBooks(new ArrayList<>());
-        return shelf;
     }
 
     public static List<Book> createMoreTestBooks() {
@@ -71,6 +73,17 @@ public class TestDataFactory {
         user.setId(id);
         user.setUsername(username);
         user.setPrivateProfile(false);
+        user.setRatings(new ArrayList<>());
+        user.setShelves(new ArrayList<>());
         return user;
+    }
+
+    private static Shelf createNewShelf(Long id, String name, Boolean permanent) {
+        Shelf shelf = new Shelf();
+        shelf.setId(id);
+        shelf.setName(name);
+        shelf.setPermanent(permanent);
+        shelf.setBooks(new ArrayList<>());
+        return shelf;
     }
 }
