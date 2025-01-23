@@ -31,6 +31,9 @@ public class TestDataFactory {
     public static Shelf createTestShelf() {
         Shelf shelf = new Shelf();
         shelf.setId(1L);
+        shelf.setName("Test Shelf");
+        shelf.setPermanent(false);
+        shelf.setBooks(new ArrayList<>());
         return shelf;
     }
 
@@ -59,6 +62,7 @@ public class TestDataFactory {
         book.setYear(year);
         book.setRating(rating);
         book.setScoresNumber(scoresNumber);
+        book.setRatings(new ArrayList<>());
         return book;
     }
 
