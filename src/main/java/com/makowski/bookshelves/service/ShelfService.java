@@ -110,6 +110,6 @@ public class ShelfService {
     } 
     
     public boolean isItProperUser(Long shelfId) {
-        return getShelf(shelfId).getOwner() == userService.getLoggedUser();
+        return getShelf(shelfId).getOwner().equals(userService.getLoggedUser());
     }
 }
