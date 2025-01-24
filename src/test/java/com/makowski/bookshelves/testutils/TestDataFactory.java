@@ -78,7 +78,7 @@ public class TestDataFactory {
         return user;
     }
 
-    private static Shelf createNewShelf(Long id, String name, Boolean permanent) {
+    private static Shelf createNewShelf(Long id, String name, boolean permanent) {
         Shelf shelf = new Shelf();
         shelf.setId(id);
         shelf.setName(name);

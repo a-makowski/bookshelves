@@ -87,13 +87,13 @@ public class UserService {
 
     public User changePrivacyStatus() {
         User user = getLoggedUser();
-        user.setPrivateProfile(!user.getPrivateProfile());
+        user.setPrivateProfile(!user.isPrivateProfile());
         return saveUser(user);
     }
 
     public List<Shelf> getUsersLibrary(Long id) {
         User user = getUser(id);
-        if (user.getPrivateProfile())
+        if (user.isPrivateProfile())
             if (getLoggedUser() != user) throw new AccessDeniedException();
         return user.getShelves();
     }
@@ -104,7 +104,7 @@ public class UserService {
      
     public List<Rating> showUsersRatings(Long id) {
         User user = getUser(id);
-        if (user.getPrivateProfile()) 
+        if (user.isPrivateProfile())
             if (getLoggedUser() != user) throw new AccessDeniedException();
         if (user.getRatings() == null) throw new EntityNotFoundException();               
         return user.getRatings();

@@ -46,7 +46,7 @@ public class User {
     private String email;
 
     @Column(name = "private", nullable = false)
-    private Boolean privateProfile; 
+    private boolean privateProfile;
 
     @JsonIgnore
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL)

@@ -37,7 +37,7 @@ public class Shelf {
 
     @JsonIgnore
     @Column(name = "permanent", nullable = false)
-    private Boolean permanent; 
+    private boolean permanent;
 
     @ManyToOne
     @JoinColumn(name = "owner_id", referencedColumnName = "id")
