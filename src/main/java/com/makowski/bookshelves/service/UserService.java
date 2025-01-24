@@ -97,10 +97,6 @@ public class UserService {
             if (getLoggedUser() != user) throw new AccessDeniedException();
         return user.getShelves();
     }
-
-    public List<Rating> getUsersRatings(Long id) {
-        return getUser(id).getRatings();
-    }
      
     public List<Rating> showUsersRatings(Long id) {
         User user = getUser(id);
