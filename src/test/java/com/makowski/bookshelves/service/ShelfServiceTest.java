@@ -107,6 +107,7 @@ class ShelfServiceTest {
         assertEquals("New Shelf", result.getName());
         assertEquals(user, result.getOwner());
         assertFalse(result.isPermanent());
+        verify(shelfRepository).save(shelf);
     }
 
     @Test
@@ -139,6 +140,7 @@ class ShelfServiceTest {
         assertEquals(user, result.getOwner());
         assertEquals(shelf.getName(), result.getName());
         assertEquals(shelf.isPermanent(), result.isPermanent());
+        verify(shelfRepository).save(shelf);
     }
 
     @Test
@@ -255,6 +257,7 @@ class ShelfServiceTest {
 
         assertEquals(shelf.getId(), result.getId());
         assertEquals("New name", result.getName());
+        verify(shelfRepository).save(shelf);
     }
 
     @Test
@@ -303,32 +306,88 @@ class ShelfServiceTest {
 
     @Test
     void deleteBookFromShelf_ReturnsUpdatedShelf_WhenSuccessfullyUpdated() {
+        Book book = TestDataFactory.createTestBook();
+        User user = TestDataFactory.createTestUser();
+        Shelf shelf = TestDataFactory.createTestShelf();
+        shelf.setOwner(user);
+        shelf.getBooks().add(book);
 
+        when(userService.getLoggedUser()).thenReturn(user);
+        when(shelfRepository.findById(3L)).thenReturn(Optional.of(shelf));
+        when(bookService.getBook(1L)).thenReturn(book);
+        when(shelfRepository.save(shelf)).thenReturn(shelf);
+
+        Shelf result = shelfService.deleteBookFromShelf(1L, 3L);
+
+        assertEquals(0, result.getBooks().size());
+        verify(shelfRepository).save(shelf);
     }
 
     @Test
     void deleteBookFromShelf_ThrowsException_WhenUserDoesNotOwnShelf() {
+        User loggedUser = TestDataFactory.createTestUser();
+        User shelfOwner = TestDataFactory.createAnotherTestUser();
+        Shelf shelf = TestDataFactory.createTestShelf();
+        shelf.setOwner(shelfOwner);
 
+        when(userService.getLoggedUser()).thenReturn(loggedUser);
+        when(shelfRepository.findById(3L)).thenReturn(Optional.of(shelf));
+
+        assertThrows(AccessDeniedException.class, () -> shelfService.deleteBookFromShelf(1L, 3L));
     }
 
     @Test
     void deleteBookFromShelf_ThrowsException_WhenBookDoesNotExistOnThisShelf() {
+        Book book = TestDataFactory.createTestBook();
+        User user = TestDataFactory.createTestUser();
+        Shelf shelf = TestDataFactory.createTestShelf();
+        shelf.setOwner(user);
 
+        when(userService.getLoggedUser()).thenReturn(user);
+        when(shelfRepository.findById(3L)).thenReturn(Optional.of(shelf));
+        when(bookService.getBook(1L)).thenReturn(book);
+
+        assertThrows(EntityNotFoundException.class, () -> shelfService.deleteBookFromShelf(1L, 3L));
     }
 
     @Test
     void isItProperName_ReturnsTrue_WhenUserDoesNotHaveShelfWithThisName() {
+        User user = TestDataFactory.createTestUser();
+        Shelf shelf = TestDataFactory.createTestShelf();
+        user.getShelves().add(shelf);
 
+        when(userService.getLoggedUser()).thenReturn(user);
+
+        boolean result = shelfService.isItProperName("NEW SHELF");
+
+        assertTrue(result);
     }
 
     @Test
     void isItProperName_ReturnsFalse_WhenUserAlreadyHaveShelfWithThisName() {
+        User user = TestDataFactory.createTestUser();
+        Shelf shelf = TestDataFactory.createTestShelf();
+        user.getShelves().add(shelf);
 
+        when(userService.getLoggedUser()).thenReturn(user);
+
+        boolean result = shelfService.isItProperName("TEST SHELF");
+
+        assertFalse(result);
     }
 
     @Test
     void isItWrongUser_ReturnsFalse_WhenUserOwnShelf() {
+        User user = TestDataFactory.createTestUser();
+        Shelf shelf = TestDataFactory.createTestShelf();
+        shelf.setOwner(user);
 
+        when(userService.getLoggedUser()).thenReturn(user);
+        when(shelfRepository.findById(3L)).thenReturn(Optional.of(shelf));
+
+        boolean result = shelfService.isItWrongUser(3L);
+
+        assertFalse(result);
     }
 
     @Test
@@ -340,5 +399,9 @@ class ShelfServiceTest {
 
         when(userService.getLoggedUser()).thenReturn(loggedUser);
         when(shelfRepository.findById(3L)).thenReturn(Optional.of(shelf));
+
+        boolean result = shelfService.isItWrongUser(3L);
+
+        assertTrue(result);
     }
 }
