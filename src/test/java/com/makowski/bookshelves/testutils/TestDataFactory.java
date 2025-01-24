@@ -36,6 +36,8 @@ public class TestDataFactory {
     public static Rating createTestRating() {
         Rating rating = new Rating();
         rating.setId(1L);
+        rating.setScore(0);
+        rating.setReview("");
         return rating;
     }
 
