@@ -1,5 +1,6 @@
 package com.makowski.bookshelves.service;
 
+import com.makowski.bookshelves.entity.Book;
 import com.makowski.bookshelves.entity.Shelf;
 import com.makowski.bookshelves.entity.User;
 import com.makowski.bookshelves.exceptions.*;
@@ -105,7 +106,7 @@ class ShelfServiceTest {
 
         assertEquals("New Shelf", result.getName());
         assertEquals(user, result.getOwner());
-        assertFalse(result.getPermanent());
+        assertFalse(result.isPermanent());
     }
 
     @Test
@@ -125,42 +126,118 @@ class ShelfServiceTest {
 
     @Test
     void createShelf_ReturnsShelf_WhenShelfSuccessfullyCreated() {
+        Shelf shelf = new Shelf();
+        User user = TestDataFactory.createTestUser();
+        shelf.setName("Test shelf");
+        shelf.setPermanent(false);
+        shelf.setOwner(user);
 
+        when(shelfRepository.save(shelf)).thenReturn(shelf);
+
+        Shelf result = shelfService.createShelf(shelf.getName(), shelf.isPermanent(), shelf.getOwner());
+
+        assertEquals(user, result.getOwner());
+        assertEquals(shelf.getName(), result.getName());
+        assertEquals(shelf.isPermanent(), result.isPermanent());
     }
 
     @Test
-    void addToShelf_ReturnsShelf_WhenBookSuccessfullyAddedToShelf() {
+    void addToShelf_ReturnsUpdatedShelf_WhenBookSuccessfullyAddedToShelf() {
+        User user = TestDataFactory.createTestUser();
+        Shelf shelf = TestDataFactory.createTestShelf();
+        Book book = TestDataFactory.createTestBook();
+        shelf.setOwner(user);
 
+        when(userService.getLoggedUser()).thenReturn(user);
+        when(bookService.getBook(1L)).thenReturn(book);
+        when(shelfRepository.findById(3L)).thenReturn(Optional.of(shelf));
+        when(shelfRepository.save(shelf)).thenReturn(shelf);
+
+        Shelf result = shelfService.addToShelf(1L, 3L);
+
+        assertEquals(shelf.getName(), result.getName());
+        assertEquals(user, result.getOwner());
+        assertEquals(book, result.getBooks().get(0));
+        verify(shelfRepository).save(shelf);
     }
 
     @Test
     void addToShelf_ThrowsException_WhenUserDoesNotOwnShelf() {
+        User loggedUser = TestDataFactory.createTestUser();
+        User shelfOwner = TestDataFactory.createAnotherTestUser();
+        Shelf shelf = TestDataFactory.createTestShelf();
+        shelf.setOwner(shelfOwner);
+
+        when(userService.getLoggedUser()).thenReturn(loggedUser);
+        when(shelfRepository.findById(3L)).thenReturn(Optional.of(shelf));
+
+        assertThrows(AccessDeniedException.class, () -> shelfService.addToShelf(1L, 3L));
 
     }
 
     @Test
     void addToShelf_ThrowsException_WhenThisBookAlreadyExistOnThisShelf() {
+        Book book = TestDataFactory.createTestBook();
+        User user = TestDataFactory.createTestUser();
+        Shelf shelf = TestDataFactory.createTestShelf();
 
+        shelf.getBooks().add(book);
+        shelf.setOwner(user);
+
+        when(userService.getLoggedUser()).thenReturn(user);
+        when(shelfRepository.findById(3L)).thenReturn(Optional.of(shelf));
+        when(bookService.getBook(1L)).thenReturn(book);
+
+        assertThrows(InvalidRequestException.class, () -> shelfService.addToShelf(1L, 3L));
     }
 
     @Test
     void deleteShelf_DeletesShelf_WhenPermitted() {
+        User user = TestDataFactory.createTestUser();
+        Shelf shelf = TestDataFactory.createTestShelf();
+        shelf.setOwner(user);
 
+        when(shelfRepository.existsById(3L)).thenReturn(true);
+        when(shelfRepository.findById(3L)).thenReturn(Optional.of(shelf));
+        when(userService.getLoggedUser()).thenReturn(user);
+
+        shelfService.deleteShelf(3L);
+        verify(shelfRepository).deleteById(3L);
     }
 
     @Test
     void deleteShelf_ThrowsException_WhenShelfDoesNotExist() {
+        when(shelfRepository.existsById(3L)).thenReturn(false);
 
+        assertThrows(EntityNotFoundException.class, () -> shelfService.deleteShelf(3L));
     }
 
     @Test
     void deleteShelf_ThrowsException_WhenUserDoesNotOwnShelf() {
+        User loggedUser = TestDataFactory.createTestUser();
+        User shelfOwner = TestDataFactory.createAnotherTestUser();
+        Shelf shelf = TestDataFactory.createTestShelf();
+        shelf.setOwner(shelfOwner);
 
+        when(shelfRepository.existsById(3L)).thenReturn(true);
+        when(shelfRepository.findById(3L)).thenReturn(Optional.of(shelf));
+        when(userService.getLoggedUser()).thenReturn(loggedUser);
+
+        assertThrows(AccessDeniedException.class, () -> shelfService.deleteShelf(3L));
     }
 
     @Test
     void deleteShelf_ThrowsException_WhenShelfIsPermanent() {
+        User user = TestDataFactory.createTestUser();
+        Shelf shelf = TestDataFactory.createTestShelf();
+        shelf.setOwner(user);
+        shelf.setPermanent(true);
 
+        when(shelfRepository.existsById(3L)).thenReturn(true);
+        when(shelfRepository.findById(3L)).thenReturn(Optional.of(shelf));
+        when(userService.getLoggedUser()).thenReturn(user);
+
+        assertThrows(PermanentShelfException.class, () -> shelfService.deleteShelf(3L));
     }
 
     @Test
@@ -225,7 +302,7 @@ class ShelfServiceTest {
     }
 
     @Test
-    void deleteBookFromShelf_ReturnsShelf_WhenSuccessfullyUpdated() {
+    void deleteBookFromShelf_ReturnsUpdatedShelf_WhenSuccessfullyUpdated() {
 
     }
 
@@ -250,12 +327,18 @@ class ShelfServiceTest {
     }
 
     @Test
-    void isItProperUser_ReturnsTrue_WhenUserOwnShelf() {
+    void isItWrongUser_ReturnsFalse_WhenUserOwnShelf() {
 
     }
 
     @Test
-    void isItProperUser_returnsFalse_WhenUserDoesNotOwnShelf() {
+    void isItWrongUser_returnsTrue_WhenUserDoesNotOwnShelf() {
+        User loggedUser = TestDataFactory.createTestUser();
+        User shelfOwner = TestDataFactory.createAnotherTestUser();
+        Shelf shelf = TestDataFactory.createTestShelf();
+        shelf.setOwner(shelfOwner);
 
+        when(userService.getLoggedUser()).thenReturn(loggedUser);
+        when(shelfRepository.findById(3L)).thenReturn(Optional.of(shelf));
     }
 }
