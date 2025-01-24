@@ -32,8 +32,8 @@ public class ShelfService {
 
     public Shelf showShelf(Long id) {
         Shelf shelf = getShelf(id);
-        if (shelf.getOwner().getPrivateProfile()) 
-            if (!isItProperUser(id)) throw new AccessDeniedException();
+        if (shelf.getOwner().isPrivateProfile())
+            if (isItWrongUser(id)) throw new AccessDeniedException();
         return shelf;
     }
     
@@ -43,7 +43,7 @@ public class ShelfService {
             else throw new ForbiddenNameException();                                
     }
 
-    public Shelf createShelf(String name, Boolean permanent, User user) {
+    public Shelf createShelf(String name, boolean permanent, User user) {
         Shelf shelf = new Shelf();
         shelf.setName(name);
         shelf.setPermanent(permanent);
@@ -57,59 +57,53 @@ public class ShelfService {
 
     public Shelf addToShelf(Long bookId, Long shelfId) {
         Shelf shelf = getShelf(shelfId);    
-        if (isItProperUser(shelfId)) {   
-            List<Book> books = shelf.getBooks();
-            Book book = bookService.getBook(bookId);
-            if (!books.contains(book)) {
-                books.add(book);
-                shelf.setBooks(books);
-                saveShelf(shelf);
-                return shelf;
-            } else throw new InvalidRequestException();
-        } else throw new AccessDeniedException();
+        if (isItWrongUser(shelfId)) throw new AccessDeniedException();
+        List<Book> books = shelf.getBooks();
+        Book book = bookService.getBook(bookId);
+        if (books.contains(book)) throw new InvalidRequestException();
+        books.add(book);
+        shelf.setBooks(books);
+        saveShelf(shelf);
+        return shelf;
+
     }
 
     public void deleteShelf(Long shelfId) {
-        if (shelfRepository.existsById(shelfId)) {
-            if (isItProperUser(shelfId)) {
-                if (!getShelf(shelfId).getPermanent()) {
-                     shelfRepository.deleteById(shelfId);
-                } else throw new PermanentShelfException("delete"); 
-            } else throw new AccessDeniedException();
-        } else throw new EntityNotFoundException(shelfId, Shelf.class);
+        if (!shelfRepository.existsById(shelfId)) throw new EntityNotFoundException(shelfId, Shelf.class);
+        if (isItWrongUser(shelfId)) throw new AccessDeniedException();
+        if (getShelf(shelfId).isPermanent()) throw new PermanentShelfException("delete");
+        shelfRepository.deleteById(shelfId);
     }    
 
     public Shelf renameShelf(Long shelfId, String newName) {
         if (newName.isBlank()) throw new InvalidRequestException();
-        if (!isItProperUser(shelfId)) throw new AccessDeniedException();
+        if (isItWrongUser(shelfId)) throw new AccessDeniedException();
         Shelf shelf = getShelf(shelfId);
-        if (shelf.getPermanent()) throw new PermanentShelfException("rename");
+        if (shelf.isPermanent()) throw new PermanentShelfException("rename");
         if (!isItProperName(newName)) throw new ForbiddenNameException();
         shelf.setName(newName);
         return saveShelf(shelf);
     }
 
     public Shelf deleteBookFromShelf(Long bookId, Long shelfId) {
-        if (isItProperUser(shelfId)) {
-            Shelf shelf = getShelf(shelfId);
-            List<Book> books = shelf.getBooks();
-            Book book= bookService.getBook(bookId);
-            if (books.contains(book)) {
-                books.remove(book);
-                shelf.setBooks(books);
-                return saveShelf(shelf);
-            } else throw new EntityNotFoundException(bookId, shelfId);       
-        } else throw new AccessDeniedException();                           
+        if (isItWrongUser(shelfId)) throw new AccessDeniedException();
+        Shelf shelf = getShelf(shelfId);
+        List<Book> books = shelf.getBooks();
+        Book book= bookService.getBook(bookId);
+        if (!books.contains(book)) throw new EntityNotFoundException(bookId, shelfId);
+        books.remove(book);
+        shelf.setBooks(books);
+        return saveShelf(shelf);
     }     
 
-    public Boolean isItProperName(String name) {
+    public boolean isItProperName(String name) {
         for (Shelf shelf : userService.getLoggedUser().getShelves()) {
             if (shelf.getName().equalsIgnoreCase(name)) return false;
         }
         return true;
     } 
     
-    public boolean isItProperUser(Long shelfId) {
-        return getShelf(shelfId).getOwner().equals(userService.getLoggedUser());
+    public boolean isItWrongUser(Long shelfId) {
+        return !(getShelf(shelfId).getOwner().equals(userService.getLoggedUser()));
     }
 }
