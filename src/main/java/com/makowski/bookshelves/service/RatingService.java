@@ -30,47 +30,44 @@ public class RatingService {
     public Rating showRating(Long id) {
         Rating rating = getRating(id);
         if (rating.getUser().isPrivateProfile())
-            if (!isItProperUser(id)) rating.setUser(null);
+            if (isItWrongUser(id)) rating.setUser(null);
         return rating;
     }
 
     public Rating createRating(Rating rating, Long bookId) {
         User user = userService.getLoggedUser();
         Book book = bookService.getBook(bookId);
-        if (canUserRateIt(user, book)) {
-            if (isItProperRating(rating)) {
-                if (rating.getScore() != 0) changeRating(bookService.getBook(bookId), 0, rating.getScore());
-                rating.setDate(LocalDate.now());
-                rating.setUser(user);
-                rating.setBook(book);
-                return ratingRepository.save(rating);    
-            } else throw new InvalidRequestException();
-        } else throw new InvalidRequestException();   
+
+        if (!canUserRateIt(user, book)) throw new InvalidRequestException();
+        if (isItWrongRating(rating)) throw new InvalidRequestException();
+        if (rating.getScore() != 0) changeRating(bookService.getBook(bookId), 0, rating.getScore());
+
+        rating.setDate(LocalDate.now());
+        rating.setUser(user);
+        rating.setBook(book);
+
+        return ratingRepository.save(rating);
     }
 
     public Rating updateRating(Long ratingId, Rating newRating) {
         Rating rating = getRating(ratingId);
-        if (isItProperUser(ratingId)) {
-            if (isItProperRating(newRating)) { 
-                if (rating.getScore() != newRating.getScore()) {
-                    changeRating(rating.getBook(), rating.getScore(), newRating.getScore());
-                    rating.setScore(newRating.getScore());
-                }
-                rating.setReview(newRating.getReview());
-                rating.setDate(LocalDate.now());
-                return ratingRepository.save(rating);
-            } else throw new InvalidRequestException();
-        } else throw new AccessDeniedException();   
+        if (isItWrongUser(ratingId)) throw new AccessDeniedException();
+        if (isItWrongRating(newRating)) throw new InvalidRequestException();
+        if (rating.getScore() != newRating.getScore()) {
+            changeRating(rating.getBook(), rating.getScore(), newRating.getScore());
+            rating.setScore(newRating.getScore());
+        }
+        rating.setReview(newRating.getReview());
+        rating.setDate(LocalDate.now());
+        return ratingRepository.save(rating);
     }   
 
     public void deleteRating(Long ratingId) {
-        if (ratingRepository.existsById(ratingId)) {
-            if (isItProperUser(ratingId)) {
-                Rating rating = getRating(ratingId);
-                if (rating.getScore() != 0) changeRating(rating.getBook(), rating.getScore(), 0);
-                ratingRepository.deleteById(ratingId);
-            } else throw new AccessDeniedException();
-        } else throw new EntityNotFoundException(ratingId, Rating.class);
+        if (!ratingRepository.existsById(ratingId)) throw new EntityNotFoundException(ratingId, Rating.class);
+        if (isItWrongUser(ratingId)) throw new AccessDeniedException();
+        Rating rating = getRating(ratingId);
+        if (rating.getScore() != 0) changeRating(rating.getBook(), rating.getScore(), 0);
+        ratingRepository.deleteById(ratingId);
     }
 
     public void changeRating(Book book, int oldScore, int newScore) {
@@ -88,13 +85,13 @@ public class RatingService {
         bookService.saveBook(book);
     }
 
-    public boolean isItProperUser(Long ratingId) {
-        return getRating(ratingId).getUser() == userService.getLoggedUser();
+    public boolean isItWrongUser(Long ratingId) {
+        return getRating(ratingId).getUser() != userService.getLoggedUser();
     }
 
-    public boolean isItProperRating(Rating rating) {
+    public boolean isItWrongRating(Rating rating) {
         if (rating.getReview() == null) rating.setReview("");
-        return ((rating.getScore() != 0) || (!rating.getReview().isBlank())) && (rating.getScore() <= 10);
+        return ((rating.getScore() == 0) && (rating.getReview().isBlank())) || (rating.getScore() > 10);
     }
 
     public boolean canUserRateIt(User user, Book book) {
