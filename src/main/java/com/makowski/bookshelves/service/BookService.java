@@ -86,7 +86,7 @@ public class BookService {
         List<Rating> ratings = getBook(id).getRatings();
         if (ratings.isEmpty()) throw new EntityNotFoundException();
         for (Rating rating : ratings) {
-            if (rating.getUser().getPrivateProfile()) rating.setUser(null);
+            if (rating.getUser().isPrivateProfile()) rating.setUser(null);
         }
         return ratings;        
     }

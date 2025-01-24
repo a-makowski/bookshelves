@@ -29,7 +29,7 @@ public class RatingService {
 
     public Rating showRating(Long id) {
         Rating rating = getRating(id);
-        if (rating.getUser().getPrivateProfile()) 
+        if (rating.getUser().isPrivateProfile())
             if (!isItProperUser(id)) rating.setUser(null);
         return rating;
     }
