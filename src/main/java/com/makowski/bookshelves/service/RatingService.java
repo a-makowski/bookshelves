@@ -91,7 +91,7 @@ public class RatingService {
 
     public boolean isItWrongRating(Rating rating) {
         if (rating.getReview() == null) rating.setReview("");
-        return ((rating.getScore() == 0) && (rating.getReview().isBlank())) || (rating.getScore() > 10);
+        return ((rating.getScore() == 0) && (rating.getReview().isBlank())) || ((rating.getScore() > 10) || (rating.getScore() < 0));
     }
 
     public boolean canUserRateIt(User user, Book book) {
