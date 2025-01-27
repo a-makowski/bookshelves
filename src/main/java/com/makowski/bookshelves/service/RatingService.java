@@ -40,7 +40,7 @@ public class RatingService {
 
         if (!canUserRateIt(user, book)) throw new InvalidRequestException();
         if (isItWrongRating(rating)) throw new InvalidRequestException();
-        if (rating.getScore() != 0) changeRating(bookService.getBook(bookId), 0, rating.getScore());
+        if (rating.getScore() != 0) changeRating(book, 0, rating.getScore());
 
         rating.setDate(LocalDate.now());
         rating.setUser(user);
