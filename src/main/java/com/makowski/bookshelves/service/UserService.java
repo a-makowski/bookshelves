@@ -60,12 +60,10 @@ public class UserService {
 
     public void changePassword(PasswordDto password) {      
         User user = getLoggedUser();
-        if (bCryptPasswordEncoder.matches(password.getOldPassword(), user.getPassword())) {
-            if (password.getNewPassword().equals(password.getRepeatNewPassword())) {
-                user.setPassword(bCryptPasswordEncoder.encode(password.getNewPassword()));
-                userRepository.save(user);
-            } else throw new PasswordNotEqualsException();
-        } else throw new AccessDeniedException();
+        if (!bCryptPasswordEncoder.matches(password.getOldPassword(), user.getPassword())) throw new AccessDeniedException();
+        if (!password.getNewPassword().equals(password.getRepeatNewPassword())) throw new PasswordNotEqualsException();
+        user.setPassword(bCryptPasswordEncoder.encode(password.getNewPassword()));
+        userRepository.save(user);
     }
 
     public User getLoggedUser() {
@@ -78,11 +76,9 @@ public class UserService {
     }
 
     public void deleteUser(Long id) {      
-        if (userRepository.existsById(id)) {
-            if (getLoggedUser().getId().equals(id)) {
-                userRepository.deleteById(id);
-            } else throw new AccessDeniedException(); 
-        } else throw new EntityNotFoundException(id, User.class);
+        if (!userRepository.existsById(id)) throw new EntityNotFoundException(id, User.class);
+        if (!getLoggedUser().getId().equals(id)) throw new AccessDeniedException();
+        userRepository.deleteById(id);
     }
 
     public User changePrivacyStatus() {
@@ -113,11 +109,10 @@ public class UserService {
     }
 
     public User setAsNowReading(Long bookId) {
-        if (bookService.existsById(bookId)) {
-            User user = getLoggedUser();
-            user.setNowReading(bookId);
-            return saveUser(user);
-        } else throw new EntityNotFoundException ();
+        if (!bookService.existsById(bookId)) throw new EntityNotFoundException();
+        User user = getLoggedUser();
+        user.setNowReading(bookId);
+        return saveUser(user);
     }
 
     public List<UserDto> findUser(String phrase) {   
