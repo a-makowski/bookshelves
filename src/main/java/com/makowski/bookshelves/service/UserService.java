@@ -98,7 +98,7 @@ public class UserService {
         User user = getUser(id);
         if (user.isPrivateProfile())
             if (getLoggedUser() != user) throw new AccessDeniedException();
-        if (user.getRatings() == null) throw new EntityNotFoundException();               
+        if (user.getRatings() == null || user.getRatings().isEmpty()) throw new EntityNotFoundException();
         return user.getRatings();
     }
 
