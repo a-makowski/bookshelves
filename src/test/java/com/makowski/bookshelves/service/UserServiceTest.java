@@ -2,11 +2,10 @@ package com.makowski.bookshelves.service;
 
 import com.makowski.bookshelves.dto.PasswordDto;
 import com.makowski.bookshelves.dto.UserDto;
+import com.makowski.bookshelves.entity.Rating;
 import com.makowski.bookshelves.entity.User;
-import com.makowski.bookshelves.exceptions.AccessDeniedException;
-import com.makowski.bookshelves.exceptions.EntityNotFoundException;
-import com.makowski.bookshelves.exceptions.ForbiddenNameException;
-import com.makowski.bookshelves.exceptions.PasswordNotEqualsException;
+import com.makowski.bookshelves.entity.Shelf;
+import com.makowski.bookshelves.exceptions.*;
 import com.makowski.bookshelves.repository.UserRepository;
 import com.makowski.bookshelves.testutils.TestDataFactory;
 import org.junit.jupiter.api.Test;
@@ -20,6 +19,8 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -238,73 +239,163 @@ class UserServiceTest {
     }
 
     @Test
-    void getUsersLibrary_ReturnsShelves_WhenProfileIsPrivateAndUserIsOwner() {
+    void getUsersLibrary_ReturnsShelves_WhenProfileIsPublic() {
+        List<Shelf> library = TestDataFactory.createTestDefaultLibrary();
+        User user = TestDataFactory.createTestUser();
+        user.setShelves(library);
 
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        List<Shelf> result = userService.getUsersLibrary(1L);
+
+        assertEquals(library, result);
     }
 
     @Test
-    void getUsersLibrary_ReturnsShelves_WhenProfileIsPublicAndUserIsOwner() {
+    void getUsersLibrary_ReturnsShelves_WhenProfileIsPrivateAndLoggedUserIsOwner() {
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        Authentication authentication = new UsernamePasswordAuthenticationToken("username1", null);
+        context.setAuthentication(authentication);
+        SecurityContextHolder.setContext(context);
 
+        List<Shelf> library = TestDataFactory.createTestDefaultLibrary();
+        User user = TestDataFactory.createTestUser();
+        user.setShelves(library);
+        user.setPrivateProfile(true);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername("username1")).thenReturn(Optional.of(user));
+
+        List<Shelf> result = userService.getUsersLibrary(1L);
+
+        assertEquals(library, result);
     }
 
     @Test
-    void getUsersLibrary_ReturnsShelves_WhenProfileIsPublicAndUserIsNotOwner() {
+    void getUsersLibrary_ThrowsException_WhenProfileIsPrivateAndLoggedUserIsNotOwner() {
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        Authentication authentication = new UsernamePasswordAuthenticationToken("username2", null);
+        context.setAuthentication(authentication);
+        SecurityContextHolder.setContext(context);
 
+        User loggedUser = TestDataFactory.createAnotherTestUser();
+        User user = TestDataFactory.createTestUser();
+        user.setPrivateProfile(true);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername("username2")).thenReturn(Optional.of(loggedUser));
+
+        assertThrows(AccessDeniedException.class, () -> userService.getUsersLibrary(1L));
     }
 
     @Test
-    void getUsersLibrary_ThrowsException_WhenProfileIsPrivateAndUserIsNotOwner () {
+    void showUsersRatings_ReturnRatings_WhenProfileIsPublic() {
+        Rating rating = TestDataFactory.createTestRating();
+        User user = TestDataFactory.createTestUser();
+        user.getRatings().add(rating);
 
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        List<Rating> result = userService.showUsersRatings(1L);
+
+        assertEquals(1, result.size());
+        assertEquals(rating, result.get(0));
     }
 
     @Test
-    void getUsersRatings_ReturnsRatings_WhenUserExists() {
+    void showUsersRatings_ReturnRatings_WhenProfileIsPrivateAndLoggedUserIsOwner() {
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        Authentication authentication = new UsernamePasswordAuthenticationToken("username1", null);
+        context.setAuthentication(authentication);
+        SecurityContextHolder.setContext(context);
 
+        Rating rating = TestDataFactory.createTestRating();
+        User user = TestDataFactory.createTestUser();
+        user.setPrivateProfile(true);
+        user.getRatings().add(rating);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername("username1")).thenReturn(Optional.of(user));
+
+        List<Rating> result = userService.showUsersRatings(1L);
+
+        assertEquals(1, result.size());
+        assertEquals(rating, result.get(0));
     }
 
     @Test
-    void showUsersRatings_ReturnRatings_WhenProfileIsPrivateAndUserIsOwner() {
+    void showUsersRatings_ThrowsException_WhenProfileIsPrivateAndLoggedUserIsNotOwner() {
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        Authentication authentication = new UsernamePasswordAuthenticationToken("username2", null);
+        context.setAuthentication(authentication);
+        SecurityContextHolder.setContext(context);
 
+        User loggedUser = TestDataFactory.createAnotherTestUser();
+        User user = TestDataFactory.createTestUser();
+        user.setPrivateProfile(true);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername("username2")).thenReturn(Optional.of(loggedUser));
+
+        assertThrows(AccessDeniedException.class, () -> userService.showUsersRatings(1L));
     }
 
     @Test
-    void showUsersRatings_ReturnRatings_WhenProfileIsPublicAndUserIsOwner() {
+    void showUsersRatings_ThrowsException_WhenUserDoesNotHaveRatings() {
+        User user = TestDataFactory.createTestUser();
 
-    }
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-    @Test
-    void showUsersRatings_ReturnRatings_WhenProfileIsPublicAndUserIsNotOwner() {
-
-    }
-
-    @Test
-    void showUsersRatings_ThrowsException_WhenProfileIsPrivateAndUserIsNotOwner() {
-
+        assertThrows(EntityNotFoundException.class, () -> userService.showUsersRatings(1L));
     }
 
     @Test
     void deleteNowReadingStatus_SetsNowReadingStatusAsNull_WhenUserIsLoggedIn() {
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        Authentication authentication = new UsernamePasswordAuthenticationToken("username1", null);
+        context.setAuthentication(authentication);
+        SecurityContextHolder.setContext(context);
 
+        User user = TestDataFactory.createTestUser();
+
+        when(userRepository.findByUsername("username1")).thenReturn(Optional.of(user));
+        when(userRepository.save(user)).thenReturn(user);
+
+        User result = userService.deleteNowReadingStatus();
+
+        verify(userRepository).save(user);
+        assertNull(result.getNowReading());
     }
 
     @Test
     void findUser_ReturnsListOfUserDto_WhenUsersAreFound() {
+        List<User> users = new ArrayList<>();
+        users.add(TestDataFactory.createTestUser());
+        users.add(TestDataFactory.createAnotherTestUser());
 
+        when(userRepository.findAll()).thenReturn(users);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(users.get(0)));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(users.get(1)));
+
+        List<UserDto> result = userService.findUser("username");
+
+        assertEquals(2, result.size());
     }
 
     @Test
     void findUser_ThrowsException_WhenSearchPhraseIsBlank() {
-
-    }
-
-    @Test
-    void findUser_ThrowsException_WhenSearchPhraseIsEmpty() {
-
+        assertThrows(InvalidRequestException.class, () -> userService.findUser("  "));
     }
 
     @Test
     void findUser_ThrowsException_WhenNothingFound() {
+        List<User> users = new ArrayList<>();
+        users.add(TestDataFactory.createTestUser());
+        users.add(TestDataFactory.createAnotherTestUser());
 
+        when(userRepository.findAll()).thenReturn(users);
+
+        assertThrows(EntityNotFoundException.class, () -> userService.findUser("test"));
     }
 
     @Test
