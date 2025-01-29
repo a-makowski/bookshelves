@@ -61,7 +61,7 @@ public class BookService {
     }
 
     public List<BookDto> findBooks(String phrase) {
-        if (phrase.isBlank()) throw new InvalidRequestException();
+        if (phrase.isBlank()) throw new InvalidRequestException("search phrase was not provided");
         List<BookDto> books = new ArrayList<>();
         for (Book book : bookRepository.findAll()) {
             String name = book.getTitle() + " " + book.getAuthor();
@@ -74,7 +74,7 @@ public class BookService {
     }    
     
     public List<BookDto> getAuthorsBooks(String author) {
-        if (author.isBlank()) throw new InvalidRequestException();
+        if (author.isBlank()) throw new InvalidRequestException("search phrase was not provided");
         List<BookDto> books = new ArrayList<>();
         for (Book book : bookRepository.findByAuthorOrderByYearDesc(author)) 
             books.add(getBookDto(book));
@@ -92,7 +92,7 @@ public class BookService {
     }
 
     public List<BookDto> top10FromGenre(String genre) {
-        if (genre.isBlank()) throw new InvalidRequestException();
+        if (genre.isBlank()) throw new InvalidRequestException("search phrase was not provided");
         List<BookDto> books = new ArrayList<>();
         for (Book book : bookRepository.findTop10ByGenreOrderByRatingDesc(genre)) {
             books.add(getBookDto(book));

@@ -38,7 +38,7 @@ public class ShelfService {
     }
     
     public Shelf createOwnShelf(String name) {
-        if (name.isBlank()) throw new InvalidRequestException();
+        if (name.isBlank()) throw new InvalidRequestException("shelf name was not provided");
         if (isItProperName(name)) return createShelf(name, false, userService.getLoggedUser());
             else throw new ForbiddenNameException();                                
     }
@@ -60,7 +60,7 @@ public class ShelfService {
         if (isItWrongUser(shelfId)) throw new AccessDeniedException();
         List<Book> books = shelf.getBooks();
         Book book = bookService.getBook(bookId);
-        if (books.contains(book)) throw new InvalidRequestException();
+        if (books.contains(book)) throw new InvalidRequestException("this book is already on this shelf");
         books.add(book);
         shelf.setBooks(books);
         saveShelf(shelf);
@@ -76,7 +76,7 @@ public class ShelfService {
     }    
 
     public Shelf renameShelf(Long shelfId, String newName) {
-        if (newName.isBlank()) throw new InvalidRequestException();
+        if (newName.isBlank()) throw new InvalidRequestException("shelf name was not provided");
         if (isItWrongUser(shelfId)) throw new AccessDeniedException();
         Shelf shelf = getShelf(shelfId);
         if (shelf.isPermanent()) throw new PermanentShelfException("rename");

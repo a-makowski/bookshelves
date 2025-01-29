@@ -116,7 +116,7 @@ public class UserService {
     }
 
     public List<UserDto> findUser(String phrase) {   
-        if (phrase.isBlank()) throw new InvalidRequestException();
+        if (phrase.isBlank()) throw new InvalidRequestException("search phrase was not provided");
         List<UserDto> users = new ArrayList<>();    
         for (User user : userRepository.findAll()) {
             if (user.getUsername().toUpperCase().contains(phrase.toUpperCase())) {

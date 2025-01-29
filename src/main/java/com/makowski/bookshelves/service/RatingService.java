@@ -38,8 +38,8 @@ public class RatingService {
         User user = userService.getLoggedUser();
         Book book = bookService.getBook(bookId);
 
-        if (!canUserRateIt(user, book)) throw new InvalidRequestException();
-        if (isItWrongRating(rating)) throw new InvalidRequestException();
+        if (!canUserRateIt(user, book)) throw new InvalidRequestException("you can only rate once for each book");
+        if (isItWrongRating(rating)) throw new InvalidRequestException("rating must contain score or review");
         if (rating.getScore() != 0) changeRating(book, 0, rating.getScore());
 
         rating.setDate(LocalDate.now());
@@ -52,7 +52,7 @@ public class RatingService {
     public Rating updateRating(Long ratingId, Rating newRating) {
         Rating rating = getRating(ratingId);
         if (isItWrongUser(ratingId)) throw new AccessDeniedException();
-        if (isItWrongRating(newRating)) throw new InvalidRequestException();
+        if (isItWrongRating(newRating)) throw new InvalidRequestException("rating must contain score or review");
         if (rating.getScore() != newRating.getScore()) {
             changeRating(rating.getBook(), rating.getScore(), newRating.getScore());
             rating.setScore(newRating.getScore());
